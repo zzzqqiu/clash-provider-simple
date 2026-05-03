@@ -16,7 +16,7 @@
 
 所以这个仓库把“规则自动更新”从 Clash Mi 客户端转移到 GitHub Actions：
 
-- GitHub Actions 每 6 小时拉取一次上游规则
+- GitHub Actions 监控上游更新，并保留每 6 小时强制刷新兜底
 - 自动合并成 3 个文件
 - Clash Mi 只加载 3 个 provider
 - 保留自动更新能力
@@ -70,7 +70,12 @@ rules:
 
 ### 自动更新
 
-GitHub Actions 每 6 小时运行一次，也支持手动触发。
+GitHub Actions 支持两种更新触发方式：
+
+- 每小时 `:15` 和 `:45` 检查一次上游 `Loyalsoldier/clash-rules` 的 `release` 分支。
+- 如果发现上游 SHA 变化，会等待 10 分钟再合并，避免刚发布时文件还没完全同步。
+- 每 6 小时强制刷新一次，作为兜底机制。
+- 也支持在 Actions 页面手动触发。
 
 更新流程：
 
@@ -102,7 +107,7 @@ On iOS, loading 10+ `rule-providers` during VPN startup can trigger many HTTP re
 
 This repository moves rule-provider updates from the iOS client to GitHub Actions:
 
-- GitHub Actions fetches upstream rules every 6 hours
+- GitHub Actions monitors upstream changes and keeps a forced 6-hour refresh as a fallback
 - Rules are merged into 3 files
 - Clash Mi only loads 3 providers
 - Automatic updates are preserved
@@ -156,7 +161,12 @@ If your proxy policy group is not named `PROXY`, replace `PROXY` with the actual
 
 ### Update Schedule
 
-GitHub Actions runs every 6 hours and can also be triggered manually from the Actions tab.
+GitHub Actions supports multiple update triggers:
+
+- Checks the upstream `Loyalsoldier/clash-rules` `release` branch at minute `:15` and `:45` every hour.
+- If the upstream SHA changed, waits 10 minutes before merging, so freshly published upstream files have time to settle.
+- Runs a forced refresh every 6 hours as a safety fallback.
+- Can also be triggered manually from the Actions tab.
 
 The update workflow:
 

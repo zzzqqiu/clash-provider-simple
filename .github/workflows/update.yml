@@ -2,36 +2,106 @@ name: Update merged Clash rules
 
 on:
   schedule:
+    # Lightweight upstream monitor. If Loyalsoldier/clash-rules release changes,
+    # wait a short grace period and then update this repository.
+    - cron: "15,45 * * * *"
+    # Periodic safety refresh, even if the upstream SHA tracker missed something.
     - cron: "0 */6 * * *"
   workflow_dispatch:
+    inputs:
+      wait_minutes:
+        description: "Minutes to wait before merging after a detected upstream change"
+        required: false
+        default: "0"
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-merged-clash-rules
+  cancel-in-progress: false
 
 jobs:
   update:
     name: Merge rule providers
     runs-on: ubuntu-latest
 
+    env:
+      UPSTREAM_COMMIT_API: https://api.github.com/repos/Loyalsoldier/clash-rules/commits/release
+      UPSTREAM_SHA_FILE: .upstream-release-sha
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check upstream state
+        id: upstream
+        run: |
+          set -euo pipefail
+
+          latest_sha="$(curl -L -s --fail "${UPSTREAM_COMMIT_API}" | jq -r '.sha')"
+          current_sha=""
+
+          if [ -f "${UPSTREAM_SHA_FILE}" ]; then
+            current_sha="$(cat "${UPSTREAM_SHA_FILE}")"
+          fi
+
+          force_update="false"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 */6 * * *" ]; then
+            force_update="true"
+          fi
+
+          should_update="false"
+          if [ "${force_update}" = "true" ] || [ "${latest_sha}" != "${current_sha}" ]; then
+            should_update="true"
+          fi
+
+          echo "latest_sha=${latest_sha}" >> "${GITHUB_OUTPUT}"
+          echo "current_sha=${current_sha}" >> "${GITHUB_OUTPUT}"
+          echo "force_update=${force_update}" >> "${GITHUB_OUTPUT}"
+          echo "should_update=${should_update}" >> "${GITHUB_OUTPUT}"
+
+          echo "Latest upstream SHA: ${latest_sha}"
+          echo "Stored upstream SHA: ${current_sha:-<none>}"
+          echo "Force update: ${force_update}"
+          echo "Should update: ${should_update}"
+
+      - name: Skip when upstream did not change
+        if: steps.upstream.outputs.should_update != 'true'
+        run: echo "Upstream did not change. Skipping merge."
+
+      - name: Wait after detected upstream change
+        if: steps.upstream.outputs.should_update == 'true' && steps.upstream.outputs.force_update != 'true'
+        run: |
+          wait_minutes=10
+          echo "Upstream changed. Waiting ${wait_minutes} minutes before merging..."
+          sleep "$((wait_minutes * 60))"
+
+      - name: Optional manual wait
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.wait_minutes != '0'
+        run: |
+          wait_minutes="${{ github.event.inputs.wait_minutes }}"
+          echo "Manual wait requested: ${wait_minutes} minutes"
+          sleep "$((wait_minutes * 60))"
+
       - name: Merge upstream rule providers
+        if: steps.upstream.outputs.should_update == 'true'
         run: |
           chmod +x ./merge.sh
           ./merge.sh
+          printf '%s\n' "${{ steps.upstream.outputs.latest_sha }}" > "${UPSTREAM_SHA_FILE}"
 
       - name: Commit and push changes
+        if: steps.upstream.outputs.should_update == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- merged_proxy.txt merged_direct.txt merged_reject.txt; then
+          if git diff --quiet -- merged_proxy.txt merged_direct.txt merged_reject.txt "${UPSTREAM_SHA_FILE}"; then
             echo "No rule changes detected. Skipping commit."
             exit 0
           fi
 
-          git add merged_proxy.txt merged_direct.txt merged_reject.txt
+          git add merged_proxy.txt merged_direct.txt merged_reject.txt "${UPSTREAM_SHA_FILE}"
           git commit -m "Update merged Clash rules"
           git push
