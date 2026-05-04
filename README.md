@@ -31,9 +31,9 @@
 ### Raw URLs
 
 ```text
-https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_proxy.txt
-https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_direct.txt
-https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_reject.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_proxy.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_direct.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_reject.txt
 ```
 
 ### Clash Mi 使用示例
@@ -45,19 +45,19 @@ rule-providers:
   proxy:
     type: http
     behavior: domain
-    url: https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_proxy.txt
+    url: https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_proxy.txt
     interval: 21600
 
   direct:
     type: http
     behavior: domain
-    url: https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_direct.txt
+    url: https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_direct.txt
     interval: 21600
 
   reject:
     type: http
     behavior: domain
-    url: https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_reject.txt
+    url: https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_reject.txt
     interval: 21600
 
 rules:
@@ -122,9 +122,9 @@ This repository moves rule-provider updates from the iOS client to GitHub Action
 ### Raw URLs
 
 ```text
-https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_proxy.txt
-https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_direct.txt
-https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_reject.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_proxy.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_direct.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_reject.txt
 ```
 
 ### Usage
@@ -136,19 +136,19 @@ rule-providers:
   proxy:
     type: http
     behavior: domain
-    url: https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_proxy.txt
+    url: https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_proxy.txt
     interval: 21600
 
   direct:
     type: http
     behavior: domain
-    url: https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_direct.txt
+    url: https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_direct.txt
     interval: 21600
 
   reject:
     type: http
     behavior: domain
-    url: https://raw.githubusercontent.com/ranjugao/clash-provider-simple/main/merged_reject.txt
+    url: https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_reject.txt
     interval: 21600
 
 rules:
