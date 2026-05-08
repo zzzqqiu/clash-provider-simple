@@ -28,11 +28,11 @@ merge_rules() {
 
   for rule_name in "$@"; do
     download_rule "${rule_name}"
-    cat "${WORKDIR}/${rule_name}" >> "${combined_file}"
-    printf '\n' >> "${combined_file}"
+    grep '^  - ' "${WORKDIR}/${rule_name}" >> "${combined_file}"
   done
 
-  awk 'NF { print }' "${combined_file}" | sort -u > "${cleaned_file}"
+  echo "payload:" > "${cleaned_file}"
+  sort -u "${combined_file}" >> "${cleaned_file}"
   mv "${cleaned_file}" "${output_file}"
 
   echo "Updated ${output_file} ($(wc -l < "${output_file}" | tr -d ' ') rules)"
