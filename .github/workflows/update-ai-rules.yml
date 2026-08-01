@@ -1,0 +1,62 @@
+name: Update AI Rules
+
+on:
+  schedule:
+    # 每天 UTC 03:17（北京 11:17）自动更新，可自行调整
+    - cron: '17 3 * * *'
+  workflow_dispatch:      # 支持手动触发
+
+permissions:
+  contents: write         # 允许自动提交
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---- 1. 下载 mihomo 内核（自动取最新版） ----
+      - name: Download mihomo
+        run: |
+          URL=$(curl -fsSL https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); tag=d['tag_name']; print(next(a['browser_download_url'] for a in d['assets'] if a['name']=='mihomo-linux-amd64-'+tag+'.gz'))")
+          echo "Downloading: $URL"
+          curl -fL -o mihomo.gz "$URL"
+          gunzip -f mihomo.gz
+          chmod +x mihomo
+          ./mihomo -v
+
+      # ---- 2. 下载三个规则集 .mrs ----
+      - name: Download rule sets
+        run: |
+          mkdir -p ruleset
+          curl -fL -o ruleset/openai.mrs \
+            'https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/openai.mrs'
+          curl -fL -o ruleset/anthropic.mrs \
+            'https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/anthropic.mrs'
+          curl -fL -o 'ruleset/category-ai-chat-!cn.mrs' \
+            'https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-ai-chat-!cn.mrs'
+
+      # ---- 3. mrs -> 纯文本（每行一个域名） ----
+      - name: Convert mrs to text
+        run: |
+          ./mihomo convert-ruleset domain mrs ruleset/openai.mrs ruleset/openai.txt
+          ./mihomo convert-ruleset domain mrs ruleset/anthropic.mrs ruleset/anthropic.txt
+          ./mihomo convert-ruleset domain mrs 'ruleset/category-ai-chat-!cn.mrs' 'ruleset/category-ai-chat-!cn.txt'
+
+      # ---- 4. 合并去重 -> ai.txt ----
+      - name: Merge & format
+        run: |
+          python3 scripts/merge_ai_rules.py
+          echo "--- 预览 ---"
+          head -n 20 ai.txt
+
+      # ---- 5. 只提交 ai.txt ----
+      - name: Commit & push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: update ai.txt rules'
+          file_pattern: ai.txt
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
