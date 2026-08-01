@@ -34,6 +34,7 @@
 https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_proxy.txt
 https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_direct.txt
 https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/main/merged_reject.txt
+https://raw.githubusercontent.com/zzzqqiu/clash-provider-simple/refs/heads/main/ai.txt
 ```
 
 ### Clash Mi 使用示例
